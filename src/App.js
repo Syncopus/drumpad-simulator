@@ -13,6 +13,7 @@ import RP4_kick from "./audio/RP4_KICK_1.mp3";
 
 function App() {
   const toastRef = useRef(null);
+  const buttonRef = useRef(null);
   const [volume, setVolume] = useState(0.5);
   const [alive, setAlive] = useState(false);
   const [currentSound, setCurrenSound] = useState("");
@@ -71,6 +72,13 @@ function App() {
     }
   }, [alive]);
 
+  useEffect(() => {
+    document.body.addEventListener('click', reassignFocus);
+    return () => {
+      document.body.removeEventListener('click', reassignFocus);
+    };
+  }, []);
+
   const handleClick = (event) => {
     if (!alive) {
       toastRef.current.classList.add('show');
@@ -78,6 +86,10 @@ function App() {
     } 
     const letter = event.target.children[0].id;
     const button = buttons.find(item => item.letter === letter);
+    if (typeof button === 'undefined') {
+      setCurrenSound("Wrong key")
+      return
+    }
     const audio = new Audio(button.audio);
     audio.volume = volume;
     audio.play();
@@ -89,30 +101,51 @@ function App() {
     setVolume(newVolume);
   }
 
+  const reassignFocus = () => {
+    const buttonElement = buttonRef.current;
+    buttonElement.focus();
+  }
+
   const handlePower = () => {
     setAlive(!alive);
   }
 
-  const padKeys = buttons.map((button, index) => (
-    <button key={index} className="drum-pad" onClick={handleClick}>
-      <audio className="clip" id={button.letter} src={button.audio}></audio>
-      {button.letter}
-    </button>
-  ))
+  const handleKeyDown = (event) => {
+    const { key } = event;
+    const letter = (key[key.length - 1]).toUpperCase();
+    handleClick({
+      target: {
+        children: [
+          { id: letter }
+        ]
+      }
+    })
+  }
+
+  const DrumPads = (props) => {
+    return props.buttons.map((button, index) => (
+        <button key={index} ref={index === 4 ? buttonRef : null} className="drum-pad" onKeyDown={handleKeyDown} onClick={handleClick} autoFocus={true}>
+          <audio id={button.letter} className="clip" src={button.audio}></audio>
+          {button.letter}
+        </button>
+    ))
+  }
+
   return (
       <div id="drum-machine" className="simulator">
-        <div className="button-container">{padKeys}</div>
-        <div id="display" className="setting-container">
+        <div className="button-container"><DrumPads buttons={buttons}/></div>
+        <div className="setting-container">
           <p>by Jules Chevallet</p>
           <div className="setters">
             <div class="form-check form-switch mt10">
               <input id="switchPower" class="form-check-input" type="checkbox" role="switch" value={alive} onChange={handlePower}></input>
               <label class="form-check-label bold" for="flexSwitchCheckChecked">Power</label>
             </div>
-            <div className="instrument-display">{currentSound}</div>
+            <div id="display" className="instrument-display">{currentSound}</div>
             <div className="range-container mt10">
               <label for="customRange2" class="form-label bold mb-0">Volume</label>
-              <input id="customRange2" type="range" class="form-range" min="0" max="1" step="0.01" value={volume} onChange={handleVolume}></input>
+              <input id="customRange2" type="range" class="form-range" min="0" max="1" step="0.01" value={volume}
+              onChange={handleVolume}></input>
             </div>
             <div class="form-check form-switch mt10">
               <input class="form-check-input" type="checkbox" role="switch" id="switchBank" disabled></input>

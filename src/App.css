@@ -3,6 +3,7 @@
   width: 50vw;
   height: 30vw;
   margin: auto;
+  border-radius: 10px;
   background-color: var(--primary-color);
   outline: 5px solid rgb(228, 184, 5);
   animation: myAnim 1s ease 0s 1 normal forwards;
@@ -45,6 +46,10 @@
   font-weight: bold;
   border: 2px solid var(--secondary-color);
   box-shadow: 2px 2px 5px 1px var(--secondary-color);
+}
+
+.drum-pad:focus {
+  outline: none;
 }
 
 .button-container button:active {
